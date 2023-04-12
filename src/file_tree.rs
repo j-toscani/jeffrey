@@ -1,6 +1,6 @@
 use std::{
     env::current_dir,
-    fs::{read_dir, DirEntry, ReadDir},
+    fs::{DirEntry, ReadDir},
     path::PathBuf,
 };
 
@@ -83,7 +83,7 @@ impl Folder {
             todo!()
         }
 
-        let directory = read_dir(entry.path())?;
+        let directory = entry.path().read_dir()?;
 
         for entry in directory {
             if let Ok(ok_entry) = entry {
@@ -114,7 +114,9 @@ impl Folder {
             to.push(entry.path());
         }
 
-        std::fs::create_dir(to.clone())?;
+        if !to.exists() {
+            std::fs::create_dir(to.clone())?;
+        }
 
         for entry in &self.content {
             entry.copy(to)?;
