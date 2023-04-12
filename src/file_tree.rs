@@ -21,7 +21,6 @@ impl FileTree {
         } else {
             let mut current_dir = current_dir()?.canonicalize()?;
             current_dir.push(to);
-            println!("Copying to: {:?}", &current_dir);
 
             self.copy(&mut current_dir)?;
         }
@@ -111,16 +110,11 @@ impl Folder {
     }
 
     fn copy(&self, to: &mut PathBuf) -> Result<()> {
-        match &self.entry {
-            Some(entry) => {
-                to.push(entry.path());
-
-                std::fs::create_dir(to.clone())?;
-            }
-            None => {
-                std::fs::create_dir(to.clone())?;
-            }
+        if let Some(entry) = &self.entry {
+            to.push(entry.path());
         }
+
+        std::fs::create_dir(to.clone())?;
 
         for entry in &self.content {
             entry.copy(to)?;
