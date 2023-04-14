@@ -31,8 +31,7 @@ impl FileTree {
     fn copy(&self, to: &mut PathBuf) -> Result<()> {
         match self {
             FileTree::File(entry) => {
-                let mut file_path = to.clone();
-                file_path.push(entry.file_name());
+                let file_path = to.join(entry.file_name());
                 std::fs::copy(entry.path(), file_path)?;
                 Ok(())
             }
@@ -79,25 +78,24 @@ impl Folder {
         let mut content: Vec<FileTree> = Vec::new();
         let file_type = entry.file_type()?;
 
-        if !file_type.is_dir() {
-            todo!()
-        }
-
-        let directory = entry.path().read_dir()?;
-
-        for entry in directory {
-            if let Ok(ok_entry) = entry {
-                if let Ok(inner_file_type) = ok_entry.file_type() {
-                    if inner_file_type.is_dir() {
-                        content.push(FileTree::Folder(Folder::try_from_dir_entry(ok_entry)?))
-                    } else {
-                        content.push(FileTree::File(ok_entry))
+        if file_type.is_dir() {
+            let directory = entry.path().read_dir()?;
+    
+            for entry in directory {
+                if let Ok(ok_entry) = entry {
+                    if let Ok(inner_file_type) = ok_entry.file_type() {
+                        if inner_file_type.is_dir() {
+                            content.push(FileTree::Folder(Folder::try_from_dir_entry(ok_entry)?))
+                        } else {
+                            content.push(FileTree::File(ok_entry))
+                        }
                     }
+                } else {
+                    content.push(FileTree::Unreadable);
                 }
-            } else {
-                content.push(FileTree::Unreadable);
             }
         }
+
 
         Ok(Folder {
             entry: Some(entry),
